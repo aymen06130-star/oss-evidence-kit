@@ -14,6 +14,7 @@ from .github import (
     validate_repository_part,
 )
 
+
 BOT_SUFFIXES = ("[bot]", "-bot")
 
 
@@ -24,14 +25,25 @@ def _is_bot(login: str) -> bool:
 
 def _pr_link(item: dict[str, Any]) -> str | None:
     link = item.get("html_url")
-    return link if isinstance(link, str) and link.startswith("https://github.com/") else None
+    if isinstance(link, str) and link.startswith("https://github.com/"):
+        return link
+    return None
 
 
 def _generated_at() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
-def _base_metadata(days: int, since: date, today: date | None = None) -> dict[str, Any]:
+def _base_metadata(
+    days: int,
+    since: date,
+    today: date | None = None,
+) -> dict[str, Any]:
     return {
         "generated_at": _generated_at(),
         "window_days": days,
@@ -57,7 +69,10 @@ def build_community_report(
     repository = client.get_repository(owner, repo)
     canonical_owner = (repository.get("owner") or {}).get("login", owner)
     full_name = repository.get("full_name", f"{owner}/{repo}")
-    query = f"repo:{full_name} is:pr is:merged merged:>={since.isoformat()}"
+    query = (
+        f"repo:{full_name} is:pr is:merged "
+        f"merged:>={since.isoformat()}"
+    )
     search: SearchResult = client.search_merged_pull_requests(query)
 
     pr_counts: Counter[str] = Counter()
@@ -86,13 +101,19 @@ def build_community_report(
             "merged_pr_count": pr_counts[login],
             "pull_requests": pr_links[login],
         }
-        for login in sorted(pr_counts, key=lambda name: (-pr_counts[name], name.casefold()))
+        for login in sorted(
+            pr_counts,
+            key=lambda name: (-pr_counts[name], name.casefold()),
+        )
     ]
     report = {
         "report_type": "community_builder_candidates",
         **_base_metadata(days, since, today),
         "repository": full_name,
-        "repository_url": repository.get("html_url", f"https://github.com/{full_name}"),
+        "repository_url": repository.get(
+            "html_url",
+            f"https://github.com/{full_name}",
+        ),
         "repository_owner_excluded": canonical_owner,
         "merged_pull_requests_found": len(search.items),
         "merged_pull_requests_reported_by_search": search.total_count,
@@ -102,16 +123,35 @@ def build_community_report(
         "candidate_external_contributors": contributors,
         "search_truncated_or_incomplete": search.truncated,
         "threshold_reference": 20,
-        "threshold_candidate_met": len(contributors) >= 20 and not search.truncated,
+        "threshold_candidate_met": (
+            len(contributors) >= 20 and not search.truncated
+        ),
         "verification_status": "candidate_count_only",
         "caveats": [
-            "GitHub Search identifies authors and merged PRs, but does not establish whether an author is an outside contributor.",
-            "Organization members, repository collaborators, bots not recognized by this tool, and affiliated accounts must be reviewed manually.",
-            "The repository owner is excluded; other maintainers are not automatically excluded because collaborator membership is not publicly knowable in every case.",
-            "A search result over GitHub's 1,000-item ceiling or marked incomplete is not a complete count.",
-            "This report is supporting evidence, not an eligibility decision or a guarantee of program approval.",
+            (
+                "GitHub Search identifies authors and merged PRs, but does "
+                "not establish whether an author is an outside contributor."
+            ),
+            (
+                "Organization members, repository collaborators, "
+                "unrecognized bots, and affiliated accounts need manual review."
+            ),
+            (
+                "The repository owner is excluded. Other maintainers are "
+                "not automatically excluded because collaborator membership "
+                "is not publicly knowable in every case."
+            ),
+            (
+                "A search result over GitHub's 1,000-item ceiling or marked "
+                "incomplete is not a complete count."
+            ),
+            (
+                "This report is supporting evidence, not an eligibility "
+                "decision or a guarantee of program approval."
+            ),
         ],
     }
+    return report
 
 
 def build_contributor_report(
@@ -124,7 +164,10 @@ def build_contributor_report(
     """Find merged PRs by a user outside repositories with the same personal owner login."""
     validate_login(username)
     since = since_date(days, today)
-    query = f"is:pr is:merged author:{username} merged:>={since.isoformat()}"
+    query = (
+        f"is:pr is:merged author:{username} "
+        f"merged:>={since.isoformat()}"
+    )
     search = client.search_merged_pull_requests(query)
 
     repo_counts: Counter[str] = Counter()
@@ -152,7 +195,10 @@ def build_contributor_report(
             "merged_pr_count": repo_counts[name],
             "pull_requests": repo_links[name],
         }
-        for name in sorted(repo_counts, key=lambda name: (-repo_counts[name], name.casefold()))
+        for name in sorted(
+            repo_counts,
+            key=lambda name: (-repo_counts[name], name.casefold()),
+        )
     ]
     candidate_count = sum(repo_counts.values())
     return {
@@ -166,14 +212,31 @@ def build_contributor_report(
         "candidate_external_repositories": repositories,
         "search_truncated_or_incomplete": search.truncated,
         "threshold_reference": 100,
-        "threshold_candidate_met": candidate_count >= 100 and not search.truncated,
+        "threshold_candidate_met": (
+            candidate_count >= 100 and not search.truncated
+        ),
         "verification_status": "candidate_count_only",
         "caveats": [
-            "This search excludes repositories whose owner login exactly matches the supplied username.",
-            "It cannot determine whether you own or control an organization-owned repository; review each result.",
-            "The report does not verify maintainer permissions, sponsorship, employment, or other affiliation with a repository.",
-            "GitHub Search is limited to 1,000 results and can return incomplete results.",
-            "This report is supporting evidence, not an eligibility decision or a guarantee of program approval.",
+            (
+                "This search excludes repositories whose owner login exactly "
+                "matches the supplied username."
+            ),
+            (
+                "It cannot determine whether you own or control an "
+                "organization-owned repository; review each result."
+            ),
+            (
+                "The report does not verify maintainer permissions, "
+                "sponsorship, employment, or other affiliation."
+            ),
+            (
+                "GitHub Search is limited to 1,000 results and can return "
+                "incomplete results."
+            ),
+            (
+                "This report is supporting evidence, not an eligibility "
+                "decision or a guarantee of program approval."
+            ),
         ],
     }
 
@@ -183,19 +246,41 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# Open-source contribution evidence report",
         "",
         f"- Generated: `{report['generated_at']}`",
-        f"- Window: `{report['window_start']}` to `{report['window_end']}` ({report['window_days']} days)",
-        f"- Source: {report['source']} (API `{report['api_version']}`)",
+        (
+            f"- Window: `{report['window_start']}` to "
+            f"`{report['window_end']}` ({report['window_days']} days)"
+        ),
+        (
+            f"- Source: {report['source']} "
+            f"(API `{report['api_version']}`)"
+        ),
         "",
     ]
     if report["report_type"] == "community_builder_candidates":
         lines += [
             f"## {report['repository']}",
             "",
-            f"- Candidate non-owner contributors: **{report['candidate_external_contributor_count']}**",
-            f"- Merged PRs returned: {report['merged_pull_requests_found']} / {report['merged_pull_requests_reported_by_search']} reported",
-            f"- Owner-authored PRs excluded: {report['owner_authored_pull_requests_excluded']}",
-            f"- Bot-authored PRs excluded: {report['bot_authored_pull_requests_excluded']}",
-            f"- Search complete: **{'no' if report['search_truncated_or_incomplete'] else 'yes'}**",
+            (
+                "- Candidate non-owner contributors: "
+                f"**{report['candidate_external_contributor_count']}**"
+            ),
+            (
+                "- Merged PRs returned: "
+                f"{report['merged_pull_requests_found']} / "
+                f"{report['merged_pull_requests_reported_by_search']} reported"
+            ),
+            (
+                "- Owner-authored PRs excluded: "
+                f"{report['owner_authored_pull_requests_excluded']}"
+            ),
+            (
+                "- Bot-authored PRs excluded: "
+                f"{report['bot_authored_pull_requests_excluded']}"
+            ),
+            (
+                "- Search complete: "
+                f"**{'no' if report['search_truncated_or_incomplete'] else 'yes'}**"
+            ),
             "",
             "### Candidate contributors",
             "",
@@ -203,17 +288,35 @@ def render_markdown(report: dict[str, Any]) -> str:
             "|---|---:|",
         ]
         for contributor in report["candidate_external_contributors"]:
-            lines.append(f"| [`{contributor['login']}`](https://github.com/{contributor['login']}) | {contributor['merged_pr_count']} |")
+            login = contributor["login"]
+            count = contributor["merged_pr_count"]
+            lines.append(
+                f"| [`{login}`](https://github.com/{login}) | {count} |"
+            )
         if not report["candidate_external_contributors"]:
             lines.append("| No candidates found | 0 |")
     else:
         lines += [
             f"## @{report['github_username']}",
             "",
-            f"- Candidate merged PRs outside personally owned repositories: **{report['candidate_external_merged_pr_count']}**",
-            f"- Merged PRs returned: {report['merged_pull_requests_found']} / {report['merged_pull_requests_reported_by_search']} reported",
-            f"- PRs in repositories with the same personal owner login excluded: {report['pull_requests_in_personally_owned_repositories_excluded']}",
-            f"- Search complete: **{'no' if report['search_truncated_or_incomplete'] else 'yes'}**",
+            (
+                "- Candidate merged PRs outside personally owned repositories: "
+                f"**{report['candidate_external_merged_pr_count']}**"
+            ),
+            (
+                "- Merged PRs returned: "
+                f"{report['merged_pull_requests_found']} / "
+                f"{report['merged_pull_requests_reported_by_search']} reported"
+            ),
+            (
+                "- PRs in repositories with the same personal owner login "
+                "excluded: "
+                f"{report['pull_requests_in_personally_owned_repositories_excluded']}"
+            ),
+            (
+                "- Search complete: "
+                f"**{'no' if report['search_truncated_or_incomplete'] else 'yes'}**"
+            ),
             "",
             "### Candidate repositories",
             "",
@@ -221,14 +324,21 @@ def render_markdown(report: dict[str, Any]) -> str:
             "|---|---:|",
         ]
         for repository in report["candidate_external_repositories"]:
-            lines.append(f"| [`{repository['repository']}`](https://github.com/{repository['repository']}) | {repository['merged_pr_count']} |")
+            name = repository["repository"]
+            count = repository["merged_pr_count"]
+            lines.append(
+                f"| [`{name}`](https://github.com/{name}) | {count} |"
+            )
         if not report["candidate_external_repositories"]:
             lines.append("| No candidate repositories found | 0 |")
 
     lines += [
         "",
-        "> **Important:** This is a candidate-evidence report, not a verified eligibility decision. "
-        "Review affiliations and the program's current terms before submitting.",
+        (
+            "> **Important:** This is a candidate-evidence report, not a "
+            "verified eligibility decision. Review affiliations and the "
+            "program's current terms before submitting."
+        ),
         "",
         "## Caveats",
         "",

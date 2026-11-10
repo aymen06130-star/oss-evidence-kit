@@ -22,7 +22,7 @@ pytest
 
 ## Engineering conventions
 
-- Target Python 3.10+.
+- Target Python 3.11+.
 - Keep runtime dependencies at zero unless there is a documented, compelling reason to add one.
 - Use type hints for public functions.
 - Keep time windows explicit and report the selected dates.

@@ -6,13 +6,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timezone
 from typing import Any
 
-from .github import (
-    GitHubClient,
-    SearchResult,
-    since_date,
-    validate_login,
-    validate_repository_part,
-)
+from .github import GitHubClient, SearchResult, since_date, validate_login, validate_repository_part
 
 
 BOT_SUFFIXES = ("[bot]", "-bot")

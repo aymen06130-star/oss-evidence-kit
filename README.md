@@ -13,7 +13,7 @@ It turns public GitHub search results into a timestamped Markdown or JSON report
 
 ## Quick start
 
-Requires Python 3.10 or newer.
+Requires Python 3.11 or newer.
 
 ```bash
 python -m pip install .

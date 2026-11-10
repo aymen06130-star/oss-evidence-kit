@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any
 
 from .github import GitHubClient, SearchResult, since_date, validate_login, validate_repository_part
@@ -26,7 +26,7 @@ def _pr_link(item: dict[str, Any]) -> str | None:
 
 def _generated_at() -> str:
     return (
-        datetime.now(timezone.utc)
+        datetime.now(UTC)
         .replace(microsecond=0)
         .isoformat()
         .replace("+00:00", "Z")

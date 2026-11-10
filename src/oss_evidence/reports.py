@@ -112,7 +112,6 @@ def build_community_report(
             "This report is supporting evidence, not an eligibility decision or a guarantee of program approval.",
         ],
     }
-    return report
 
 
 def build_contributor_report(
@@ -172,7 +171,7 @@ def build_contributor_report(
         "caveats": [
             "This search excludes repositories whose owner login exactly matches the supplied username.",
             "It cannot determine whether you own or control an organization-owned repository; review each result.",
-            "The report does not verify maintainer permissions, sponsorship, employment, or other affilitiation with a repository.",
+            "The report does not verify maintainer permissions, sponsorship, employment, or other affiliation with a repository.",
             "GitHub Search is limited to 1,000 results and can return incomplete results.",
             "This report is supporting evidence, not an eligibility decision or a guarantee of program approval.",
         ],
@@ -200,7 +199,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "### Candidate contributors",
             "",
-            "| GitHub login | Merged PR s |",
+            "| GitHub login | Merged PRs |",
             "|---|---:|",
         ]
         for contributor in report["candidate_external_contributors"]:

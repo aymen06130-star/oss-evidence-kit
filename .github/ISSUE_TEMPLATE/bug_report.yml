@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible problem in OSS Evidence Kit.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include access tokens, private repository contents, or generated reports containing personal data."
+  - type: input
+    id: version
+    attributes:
+      label: OSS Evidence Kit version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: 3.12.0
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and redacted output
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true

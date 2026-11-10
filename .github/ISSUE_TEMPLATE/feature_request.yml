@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an evidence source or workflow improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What maintainer or contributor workflow is currently difficult?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Data limitations or risks
+      description: How could the feature accidentally overstate eligibility or misclassify evidence?
